@@ -24,7 +24,7 @@ var summaries = new[]
 
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
+    var forecast = Enumerable.Range(1, 5).Select(index =>
         new WeatherForecast
         (
             DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
@@ -61,8 +61,8 @@ app.MapPost("/api/usuarios", (Usuario nuevoUsuario) =>
 {
     if (string.IsNullOrWhiteSpace(nuevoUsuario.Nombre))
         return Results.BadRequest("El nombre del usuario es obligatorio.");
-    if(nuevoUsuario.Nombre.Length < 3)
-        return Results.BadRequest("El nombre del usuario debe tener al menos 3 caracteres.");    
+    if (nuevoUsuario.Nombre.Length < 3)
+        return Results.BadRequest("El nombre del usuario debe tener al menos 3 caracteres.");
     nuevoUsuario.Id = 99; // Simulación de "ID generado"
     return Results.Created($"/api/usuarios/{nuevoUsuario.Id}", nuevoUsuario);
 });
@@ -85,10 +85,58 @@ app.MapGet("/api/usuarios/{id:int}", (int id) =>
 app.MapPost("/api/productos", (Producto nuevoProducto) =>
 {
     if (string.IsNullOrWhiteSpace(nuevoProducto.Nombre))
-        return Results.BadRequest("El nombre del producto es obligatorio.");
+        return Results.BadRequest(new
+        {
+            message = "Error en los datos enviados.",
+            errors = new
+            {
+                Nombre = "El nombre es obligatorio."
+            }
+        });
+
+    if (nuevoProducto.Nombre.Length < 3)
+        return Results.BadRequest(new
+        {
+            message = "Error en los datos enviados.",
+            errors = new
+            {
+                Nombre = "El nombre debe tener al menos 3 caracteres."
+            }
+        });
 
     if (nuevoProducto.Precio <= 0)
-        return Results.BadRequest("El precio debe ser mayor a 0.");
+        return Results.BadRequest(new
+        {
+            message = "Error en los datos enviados.",
+            errors = new
+            {
+                Precio = "El precio debe ser mayor a 0."
+            }
+        });
+
+    if( nuevoProducto.Precio > 10000)
+        return Results.BadRequest(new
+        {
+            message = "Error en los datos enviados.",
+            errors = new
+            {
+                Precio = "El precio debe ser menor a 10000."
+            }
+        });
+
+    var productosExistentes = new[]
+    {
+        new { Id = 1, Nombre = "Laptop", Precio = 9999 },
+        new { Id = 2, Nombre = "Mouse", Precio = 250 },
+        new { Id = 3, Nombre = "Teclado", Precio = 600 }
+    };
+
+    if (productosExistentes.Any(p => p.Nombre.ToLower() == nuevoProducto.Nombre.ToLower()))
+        return Results.Conflict(new
+        {
+            message = "Ya existe un producto con el mismo nombre."
+        });
+
 
     nuevoProducto.Id = 123;
     return Results.Created($"/api/productos/{nuevoProducto.Id}", nuevoProducto);
