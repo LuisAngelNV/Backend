@@ -67,9 +67,16 @@ app.MapPost("/api/usuarios", (Usuario nuevoUsuario) =>
 
 app.MapPost("/api/productos", (Producto nuevoProducto) =>
 {
+    if (string.IsNullOrWhiteSpace(nuevoProducto.Nombre))
+        return Results.BadRequest("El nombre del producto es obligatorio.");
+
+    if (nuevoProducto.Precio <= 0)
+        return Results.BadRequest("El precio debe ser mayor a 0.");
+
     nuevoProducto.Id = 123;
     return Results.Created($"/api/productos/{nuevoProducto.Id}", nuevoProducto);
 });
+
 
 
 
