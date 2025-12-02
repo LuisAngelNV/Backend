@@ -64,7 +64,6 @@ app.MapPost("/api/usuarios", (Usuario nuevoUsuario) =>
     nuevoUsuario.Id = 99; // Simulación de "ID generado"
     return Results.Created($"/api/usuarios/{nuevoUsuario.Id}", nuevoUsuario);
 });
-
 app.MapPost("/api/productos", (Producto nuevoProducto) =>
 {
     if (string.IsNullOrWhiteSpace(nuevoProducto.Nombre))
@@ -75,6 +74,26 @@ app.MapPost("/api/productos", (Producto nuevoProducto) =>
 
     nuevoProducto.Id = 123;
     return Results.Created($"/api/productos/{nuevoProducto.Id}", nuevoProducto);
+});
+app.MapGet("/api/productos/{id:int}", (int id) =>
+{
+    var productos = new[]
+    {
+        new { Id = 1, Nombre = "Laptop", Precio = 15000 },
+        new { Id = 2, Nombre = "Mouse", Precio = 250 },
+        new { Id = 3, Nombre = "Teclado", Precio = 600 }
+    };
+
+    var producto = productos.FirstOrDefault(p => p.Id == id);
+
+    if (producto is null)
+        return Results.NotFound("Producto no encontrado.");
+
+    return Results.Ok(producto);
+});
+app.MapGet("/api/error", () =>
+{
+    throw new Exception("Ups, ocurrió un error inesperado");
 });
 
 
