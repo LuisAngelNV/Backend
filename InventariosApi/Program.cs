@@ -1,3 +1,4 @@
+using System.Diagnostics.Metrics;
 using InventariosApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,12 +59,29 @@ app.MapGet("/api/usuarios", () =>
 });
 app.MapPost("/api/usuarios", (Usuario nuevoUsuario) =>
 {
-    // Aquí normalmente lo guardaríamos en BD
-    // Por ahora solo devolveremos lo que recibimos
-
+    if (string.IsNullOrWhiteSpace(nuevoUsuario.Nombre))
+        return Results.BadRequest("El nombre del usuario es obligatorio.");
+    if(nuevoUsuario.Nombre.Length < 3)
+        return Results.BadRequest("El nombre del usuario debe tener al menos 3 caracteres.");    
     nuevoUsuario.Id = 99; // Simulación de "ID generado"
     return Results.Created($"/api/usuarios/{nuevoUsuario.Id}", nuevoUsuario);
 });
+app.MapGet("/api/usuarios/{id:int}", (int id) =>
+{
+    var usuarios = new[]
+    {
+        new { Id = 1, Nombre = "Luis" },
+        new { Id = 2, Nombre = "Ana" }
+    };
+
+    var usuario = usuarios.FirstOrDefault(p => p.Id == id);
+
+    if (usuario is null)
+        return Results.NotFound("Usuario no encontrado.");
+
+    return Results.Ok(usuario);
+});
+
 app.MapPost("/api/productos", (Producto nuevoProducto) =>
 {
     if (string.IsNullOrWhiteSpace(nuevoProducto.Nombre))
