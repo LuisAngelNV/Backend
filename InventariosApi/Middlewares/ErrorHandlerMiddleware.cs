@@ -1,43 +1,36 @@
-public class ErrorHandlerMiddleware
+using System.Net;
+using System.Text.Json;
+
+namespace InventariosApi.Middlewares
 {
-    private readonly RequestDelegate _next;
-
-    public ErrorHandlerMiddleware(RequestDelegate next)
+    public class ErrorHandlerMiddleware
     {
-        _next = next;
-    }
+        private readonly RequestDelegate _next;
 
-    public async Task Invoke(HttpContext context)
-    {
-        try
+        public ErrorHandlerMiddleware(RequestDelegate next)
         {
-            await _next(context);
+            _next = next;
         }
-        catch (Exception ex)
+
+        public async Task Invoke(HttpContext context)
         {
-            context.Response.StatusCode = 500;
-            context.Response.ContentType = "application/json";
-
-            var error = new
+            try
             {
-                message = "Ocurrió un error inesperado.",
-                exception = ex.GetType().Name,
-                detail = ex.Message,
-                stackTrace = ex.StackTrace,
-                path = context.Request.Path.Value,
-                method = context.Request.Method,
-                timestamp = DateTime.UtcNow
-            };
+                await _next(context);
+            }
+            catch (Exception ex)
+            {
+                context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                context.Response.ContentType = "application/json";
 
-            // Log en consola
-            Console.WriteLine("===== ERROR DETECTADO =====");
-            Console.WriteLine($"Tipo: {ex.GetType().Name}");
-            Console.WriteLine($"Mensaje: {ex.Message}");
-            Console.WriteLine($"Ruta: {context.Request.Path}");
-            Console.WriteLine($"Método: {context.Request.Method}");
-            Console.WriteLine("============================");
+                var error = new
+                {
+                    mensaje = ex.Message,
+                    detalle = ex.StackTrace
+                };
 
-            await context.Response.WriteAsJsonAsync(error);
+                await context.Response.WriteAsync(JsonSerializer.Serialize(error));
+            }
         }
     }
 }
