@@ -1,173 +1,26 @@
-using System.Diagnostics.Metrics;
-using InventariosApi.Models;
+using FluentValidation;
+using FluentValidation.AspNetCore;
+using InventariosApi.Repositories;
+using InventariosApi.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+
+// FluentValidation
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddValidatorsFromAssemblyContaining<Program>();
+
+// Repositories and Services
+builder.Services.AddSingleton<VehiculosRepository>();
+builder.Services.AddScoped<VehiculosService>();
+
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
-
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast = Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
-
-app.MapGet("/api/productos", () =>
-{
-    var productos = new[]
-    {
-        new { Id = 1, Nombre = "Laptop", Precio = 15000 },
-        new { Id = 2, Nombre = "Mouse", Precio = 250 },
-        new { Id = 3, Nombre = "Teclado", Precio = 600 }
-    };
-
-    return productos;
-});
-
-app.MapGet("/api/usuarios", () =>
-{
-    var usuarios = new[]
-    {
-        new { Id = 1, Nombre = "Luis" },
-        new { Id = 2, Nombre = "Ana" }
-    };
-    return usuarios;
-});
-app.MapPost("/api/usuarios", (Usuario nuevoUsuario) =>
-{
-    if (string.IsNullOrWhiteSpace(nuevoUsuario.Nombre))
-        return Results.BadRequest("El nombre del usuario es obligatorio.");
-    if (nuevoUsuario.Nombre.Length < 3)
-        return Results.BadRequest("El nombre del usuario debe tener al menos 3 caracteres.");
-    nuevoUsuario.Id = 99; // Simulación de "ID generado"
-    return Results.Created($"/api/usuarios/{nuevoUsuario.Id}", nuevoUsuario);
-});
-app.MapGet("/api/usuarios/{id:int}", (int id) =>
-{
-    var usuarios = new[]
-    {
-        new { Id = 1, Nombre = "Luis" },
-        new { Id = 2, Nombre = "Ana" }
-    };
-
-    var usuario = usuarios.FirstOrDefault(p => p.Id == id);
-
-    if (usuario is null)
-        return Results.NotFound("Usuario no encontrado.");
-
-    return Results.Ok(usuario);
-});
-
-app.MapPost("/api/productos", (Producto nuevoProducto) =>
-{
-    if (string.IsNullOrWhiteSpace(nuevoProducto.Nombre))
-        return Results.BadRequest(new
-        {
-            message = "Error en los datos enviados.",
-            errors = new
-            {
-                Nombre = "El nombre es obligatorio."
-            }
-        });
-
-    if (nuevoProducto.Nombre.Length < 3)
-        return Results.BadRequest(new
-        {
-            message = "Error en los datos enviados.",
-            errors = new
-            {
-                Nombre = "El nombre debe tener al menos 3 caracteres."
-            }
-        });
-
-    if (nuevoProducto.Precio <= 0)
-        return Results.BadRequest(new
-        {
-            message = "Error en los datos enviados.",
-            errors = new
-            {
-                Precio = "El precio debe ser mayor a 0."
-            }
-        });
-
-    if( nuevoProducto.Precio > 10000)
-        return Results.BadRequest(new
-        {
-            message = "Error en los datos enviados.",
-            errors = new
-            {
-                Precio = "El precio debe ser menor a 10000."
-            }
-        });
-
-    var productosExistentes = new[]
-    {
-        new { Id = 1, Nombre = "Laptop", Precio = 9999 },
-        new { Id = 2, Nombre = "Mouse", Precio = 250 },
-        new { Id = 3, Nombre = "Teclado", Precio = 600 }
-    };
-
-    if (productosExistentes.Any(p => p.Nombre.ToLower() == nuevoProducto.Nombre.ToLower()))
-        return Results.Conflict(new
-        {
-            message = "Ya existe un producto con el mismo nombre."
-        });
-
-
-    nuevoProducto.Id = 123;
-    return Results.Created($"/api/productos/{nuevoProducto.Id}", nuevoProducto);
-});
-app.MapGet("/api/productos/{id:int}", (int id) =>
-{
-    var productos = new[]
-    {
-        new { Id = 1, Nombre = "Laptop", Precio = 15000 },
-        new { Id = 2, Nombre = "Mouse", Precio = 250 },
-        new { Id = 3, Nombre = "Teclado", Precio = 600 }
-    };
-
-    var producto = productos.FirstOrDefault(p => p.Id == id);
-
-    if (producto is null)
-        return Results.NotFound("Producto no encontrado.");
-
-    return Results.Ok(producto);
-});
-app.MapGet("/api/error", () =>
-{
-    throw new Exception("Ups, ocurrió un error inesperado");
-});
-
-
-
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
