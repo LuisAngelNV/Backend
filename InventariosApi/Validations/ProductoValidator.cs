@@ -1,6 +1,8 @@
 ﻿using FluentValidation;
 using InventariosApi.Models;
 
+namespace InventariosApi.Validations;
+
 public class ProductoValidator : AbstractValidator<Producto>
 {
     public ProductoValidator()
