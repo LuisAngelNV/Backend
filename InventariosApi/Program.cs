@@ -17,6 +17,9 @@ builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 builder.Services.AddSingleton<VehiculosRepository>();
 builder.Services.AddScoped<VehiculosService>();
 
+builder.Services.AddScoped<IClientesRepository, ClientesRepository>();
+builder.Services.AddScoped<IClientesService, ClientesService>();
+
 
 var app = builder.Build();
 

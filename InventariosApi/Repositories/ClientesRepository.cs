@@ -6,7 +6,7 @@ using InventariosApi.Models;
 
 namespace InventariosApi.Repositories
 {
-    public class ClientesRepository
+    public class ClientesRepository : IClientesRepository
     {
         private readonly List<Cliente> _clientes = new()
         {
