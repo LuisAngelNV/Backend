@@ -1,5 +1,6 @@
 using FluentValidation;
 using FluentValidation.AspNetCore;
+using InventariosApi.Middlewares;
 using InventariosApi.Repositories;
 using InventariosApi.Services;
 using System.Reflection;
@@ -31,6 +32,9 @@ app.UseSwaggerUI(options =>
     options.SwaggerEndpoint("/swagger/v1/swagger.json", "Inventarios API v1");
     options.RoutePrefix = string.Empty;
 });
+
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+
 
 app.MapControllers();
 

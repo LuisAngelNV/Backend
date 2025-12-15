@@ -1,3 +1,4 @@
+using System.CodeDom.Compiler;
 using InventariosApi.DTOs;
 using InventariosApi.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -8,12 +9,19 @@ namespace InventariosApi.Controllers
     [Route("api/[controller]")]
     public class ClientesController : ControllerBase
     {
-        private readonly ClientesService _clientes;
+        private readonly IClientesService _clientes;
 
-        public ClientesController(ClientesService clientes)
+        public ClientesController(IClientesService clientes)
         {
             _clientes = clientes;
         }
+
+        [HttpGet("error")]
+        public IActionResult MandarError()
+        {
+            throw new Exception("Error de prueba");
+        }
+
 
         // GET /api/clientes
         [HttpGet]
