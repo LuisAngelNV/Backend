@@ -53,8 +53,14 @@ namespace InventariosApi.Controllers
         {
             var borrado = _service.Eliminar(id);
             if (!borrado)
-                return NotFound("Vehículo no encontrado");
-
+            {
+                return NotFound(new ProblemDetails
+                {
+                    Title = "Cliente no encontrado",
+                    Detail = $"No existe un cliente con id {id}",
+                    Status = StatusCodes.Status404NotFound
+                });
+            }
             return NoContent();
         }
     }
